@@ -1,4 +1,4 @@
-package cz.stones.stone.view.component;
+package cz.stones.stone.view.component.toolbar;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.contextmenu.ContextMenu;

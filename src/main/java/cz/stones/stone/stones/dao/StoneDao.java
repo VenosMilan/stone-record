@@ -1,6 +1,7 @@
 
 package cz.stones.stone.stones.dao;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import cz.stones.stone.stones.model.Dimension;

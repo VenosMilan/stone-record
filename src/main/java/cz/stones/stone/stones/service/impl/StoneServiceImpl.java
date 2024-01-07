@@ -4,16 +4,19 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import cz.stones.stone.stones.dao.StoneDao;
 import cz.stones.stone.stones.model.Dimension;
 import cz.stones.stone.stones.model.Stone;
 import cz.stones.stone.stones.service.StoneService;
 import cz.stones.stone.stones.service.exception.StoneException;
+import cz.stones.stone.stones.service.pojo.DimensionPojo;
 import cz.stones.stone.stones.service.pojo.FilterPojo;
 import cz.stones.stone.stones.service.pojo.StonePojo;
 
@@ -22,10 +25,8 @@ public class StoneServiceImpl implements StoneService {
 
     @Autowired
     private StoneDao stoneDao;
-
-    public StoneServiceImpl(StoneDao stoneDao) {
-        this.stoneDao = stoneDao;
-    }
+    private Stone stone;
+    private List<DimensionPojo> dd;
 
     @Override
     @Transactional
@@ -45,14 +46,17 @@ public class StoneServiceImpl implements StoneService {
             Dimension dim = new Dimension();
             dim.setDimension(new BigDecimal(d));
             dim.setStone(stone);
+
             stone.getDimensions().add(dim);
         });
+
+        stone.setCountOfDimensions(stone.getDimensions().size());
 
         return this.stoneDao.createStone(stone);
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public StonePojo getStone(Long id) {
         Stone stone = this.stoneDao.getStone(id);
 
@@ -64,7 +68,7 @@ public class StoneServiceImpl implements StoneService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteStone(Long id) {
         this.stoneDao.deleteStone(id);
     }
@@ -72,11 +76,7 @@ public class StoneServiceImpl implements StoneService {
     @Override
     @Transactional
     public void updateStone(StonePojo stonePojo) {
-        Stone stone = this.stoneDao.getStone(stonePojo.getId());
-
-        List<Dimension> dimensions = stone.getDimensions();
-        List<Dimension> oldDimensions = new ArrayList<>(dimensions);
-        List<Dimension> newDimensions = new ArrayList<>();
+        Stone stone = stoneDao.getStone(stonePojo.getId());
 
         stone.setManufacture(stonePojo.getManufacture());
         stone.setStateOfStone(stonePojo.getStateOfStone());
@@ -84,25 +84,21 @@ public class StoneServiceImpl implements StoneService {
         stone.setColor(stonePojo.getColor());
         stone.setNotes(stonePojo.getNotes());
         stone.setRack(stonePojo.getRack());
-
-        stone.getDimensions().removeAll(oldDimensions);
+        stone.setDimensions(new ArrayList<>());
 
         List.of(stonePojo.getFlatDimensions().split("x|X")).forEach(d -> {
             Dimension dim = new Dimension();
             dim.setDimension(new BigDecimal(d));
             dim.setStone(stone);
-            newDimensions.add(dim);
+            this.stoneDao.createDimension(dim);
         });
 
 
-        oldDimensions.forEach(d -> this.stoneDao.deleteDimension(d));
-        newDimensions.forEach(d -> this.stoneDao.createDimension(d));
-
-        stone.setDimensions(newDimensions);
+        stone.setCountOfDimensions(stone.getDimensions().size());
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<StonePojo> list(Pageable pageable, FilterPojo filter) {
         return stoneDao.list(pageable, filter).map(StonePojo::new);
     }

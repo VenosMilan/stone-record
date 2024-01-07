@@ -12,11 +12,18 @@ public class FilterPojo {
 
     private BigDecimal thicknesFilter;
 
+    private String dimensionFilter;
+
+    public FilterPojo() {}
+
+
     public FilterPojo(String input) {
         setTextFilter(input);
     }
 
-      public FilterPojo(BigDecimal input) {
+    public FilterPojo(BigDecimal input) {
         setThicknesFilter(input);
     }
+
+
 }

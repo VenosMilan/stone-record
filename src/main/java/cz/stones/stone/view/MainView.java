@@ -15,16 +15,14 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import cz.stones.stone.stones.model.StateOfStone;
 import cz.stones.stone.stones.service.StoneService;
-import cz.stones.stone.stones.service.pojo.FilterPojo;
 import cz.stones.stone.stones.service.pojo.StonePojo;
-import cz.stones.stone.view.component.ColumnToogleContextMenu;
+import cz.stones.stone.view.component.Toolbar;
 import cz.stones.stone.view.convertor.DoubleToBigDecimalConverter;
 
 @PageTitle("List All")
@@ -37,13 +35,9 @@ public class MainView extends VerticalLayout {
     private final StoneService stoneService;
     private StoneForm form;
     private Dialog dialog;
-    private TextField filterText = new TextField();
-    private TextField dimensionFilterText = new TextField();
-    private FilterPojo filter;
 
     public MainView(StoneService stoneService) {
         this.stoneService = stoneService;
-       // addClassName("list-all-view");
 
         configureForm();
         configureDialog();
@@ -51,7 +45,7 @@ public class MainView extends VerticalLayout {
         setSizeFull();
         configureGrid();
 
-        add(prepareToolbar(), grid);
+        add(new Toolbar(grid, stoneService, form, dialog).prepareToolbar(), grid);
     }
 
     private void configureGrid() {
@@ -75,8 +69,8 @@ public class MainView extends VerticalLayout {
     }
 
     private void prepareColumns(BeanValidationBinder<StonePojo> binder) {
-        grid.addColumn(StonePojo::getId)
-                .setHeader("Id").setFrozen(true).setWidth("5%").setFlexGrow(0).setVisible(false);
+        grid.addColumn(StonePojo::getId).setHeader("Id").setFrozen(true).setWidth("5%")
+                .setFlexGrow(0).setVisible(false);
         Grid.Column<StonePojo> manufactureColumn = grid.addColumn(StonePojo::getManufacture)
                 .setHeader("Manufacture").setFrozen(true).setWidth("10%").setFlexGrow(0);
         Grid.Column<StonePojo> colorColumn = grid.addColumn(StonePojo::getColor).setHeader("Color")
@@ -159,7 +153,8 @@ public class MainView extends VerticalLayout {
                 .asRequired("Element is required").bind("thicknes");
         thicknesColumn.setEditorComponent(thicknesField);
 
-        ComboBox<?> stateOfStonesField = ViewTools.getComboBox("stateOfStone", StateOfStone.values());
+        ComboBox<?> stateOfStonesField =
+                ViewTools.getComboBox("stateOfStone", StateOfStone.values());
         stateOfStonesField.setLabel(null);
         binder.forField(stateOfStonesField).bind("stateOfStone");
         stateOfStoneColumn.setEditorComponent(stateOfStonesField);
@@ -178,61 +173,6 @@ public class MainView extends VerticalLayout {
             return editButton;
         }).setWidth("150px").setHeader("Action").setFlexGrow(0);
         return editColumn;
-    }
-
-    private HorizontalLayout prepareToolbar() {
-        textFilter();
-        dimensionFilter();
-
-        Button addContactButton = new Button("Add stone");
-        addContactButton.addClickListener(e -> {
-            form.setStone(new StonePojo());
-            dialog.open();
-        });
-
-        Button menuButton = new Button("Show/Hide Columns");
-        menuButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        menuButton.setClassName("showHideColumnButton");
-
-        ColumnToogleContextMenu columnToggleContextMenu = new ColumnToogleContextMenu(menuButton);
-        grid.getColumns().forEach(col -> {
-            columnToggleContextMenu.addColumnToggleItem(col.getHeaderText(), col);
-        });
-
-        var horizontalLayout = new HorizontalLayout(filterText, dimensionFilterText, addContactButton);
-        horizontalLayout.setPadding(true);
-        horizontalLayout.setFlexGrow(13, menuButton);
-        horizontalLayout.add(menuButton);
-
-        return horizontalLayout;
-    }
-
-    private void textFilter() {
-        filterText.setPlaceholder("Filter ...");
-        filterText.setClearButtonVisible(true);
-        filterText.setValueChangeMode(ValueChangeMode.LAZY);
-
-        filterText.addValueChangeListener(
-                e -> updateList(new FilterPojo(this.filterText.getValue())));
-    }
-
-    private void dimensionFilter() {
-        dimensionFilterText.setPlaceholder("Dimension filter ...");
-        dimensionFilterText.setClearButtonVisible(true);
-        dimensionFilterText.setValueChangeMode(ValueChangeMode.LAZY);
-
-        dimensionFilterText.addValueChangeListener(
-                e -> updateList(new FilterPojo(this.dimensionFilterText.getValue())));
-    }
-
-    private void updateList(FilterPojo filter) {
-        grid.setItems(query -> {
-            MainView.this.filter = filter;
-            return stoneService
-                    .list(PageRequest.of(query.getPage(), query.getPageSize(),
-                            VaadinSpringDataHelpers.toSpringDataSort(query)), MainView.this.filter)
-                    .stream();
-        });
     }
 
     private void configureForm() {

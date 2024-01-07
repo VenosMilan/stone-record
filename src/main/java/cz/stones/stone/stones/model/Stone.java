@@ -57,4 +57,7 @@ public class Stone implements Serializable {
             fetch = FetchType.LAZY)
     @NotNull
     private List<Dimension> dimensions;
+
+    @NotNull
+    private Integer countOfDimensions;
 }

@@ -1,0 +1,12 @@
+Ukladani dimenzi
+Automaticky, manualni export dat do csv
+Import dat z csv
+-https://www.baeldung.com/hibernate-spatial
+Bodově orientovaný přístup
+-https://stackoverflow.com/questions/6811365/whats-the-best-way-to-store-shapes-in-a-database
+Sqllite geometry
+-https://www.gaia-gis.it/gaia-sins/BLOB-Geometry.html
+Protyp
+-Pouze 2D
+-CSV
+-Spuštění

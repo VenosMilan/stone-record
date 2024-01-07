@@ -7,7 +7,6 @@ import com.vaadin.flow.component.textfield.TextField;
 
 public class ViewTools {
 
-
         public static TextField getTextField(String atributName) {
                 TextField textField = new TextField();
                 textField.setWidthFull();

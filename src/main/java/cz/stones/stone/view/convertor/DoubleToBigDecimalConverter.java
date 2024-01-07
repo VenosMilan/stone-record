@@ -11,7 +11,7 @@ public class DoubleToBigDecimalConverter implements Converter<Double, BigDecimal
 
     @Override
     public Result<BigDecimal> convertToModel(Double value, ValueContext context) {
-                return value == null ? Result.ok(null ) : Result.ok(BigDecimal.valueOf(value));
+        return value == null ? Result.ok(null) : Result.ok(BigDecimal.valueOf(value));
     }
 
     @Override

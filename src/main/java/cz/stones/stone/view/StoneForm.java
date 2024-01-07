@@ -38,12 +38,13 @@ public class StoneForm extends FormLayout {
 
     TextField flatDimensionsField = ViewTools.getTextField("flatDimensions");
     flatDimensionsField.setLabel("DIMENSIONS");
-    flatDimensionsField.setPattern("^(\\d+(\\.\\d+)?x)+\\d+(\\.\\d+)?$");
+    flatDimensionsField.setPattern("^(\\d+(\\.\\d+)?[x|X])+\\d+(\\.\\d+)?$");
     flatDimensionsField.setHelperText("Possible values: 10x20, 10.1x20.5, 15X20,...");
     binder.forField(flatDimensionsField).asRequired("Element is required").bind("flatDimensions");
 
     TextField rackField = ViewTools.getTextField("rack");
     binder.forField(rackField).bind("rack");
+    
     TextField notesField = ViewTools.getTextField("notes");
     binder.forField(notesField).bind("notes");
 
