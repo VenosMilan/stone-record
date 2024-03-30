@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +15,6 @@ import cz.stones.stone.stones.model.Dimension;
 import cz.stones.stone.stones.model.Stone;
 import cz.stones.stone.stones.service.StoneService;
 import cz.stones.stone.stones.service.exception.StoneException;
-import cz.stones.stone.stones.service.pojo.DimensionPojo;
 import cz.stones.stone.stones.service.pojo.FilterPojo;
 import cz.stones.stone.stones.service.pojo.StonePojo;
 
@@ -25,8 +23,6 @@ public class StoneServiceImpl implements StoneService {
 
     @Autowired
     private StoneDao stoneDao;
-    private Stone stone;
-    private List<DimensionPojo> dd;
 
     @Override
     @Transactional
@@ -42,7 +38,7 @@ public class StoneServiceImpl implements StoneService {
         stone.setDateOfCreation(LocalDateTime.now());
         stone.setDimensions(new ArrayList<>());
 
-        List.of(stonePojo.getFlatDimensions().split("x|X")).forEach(d -> {
+        List.of(stonePojo.getFlatDimensions().toLowerCase().split("x")).forEach(d -> {
             Dimension dim = new Dimension();
             dim.setDimension(new BigDecimal(d));
             dim.setStone(stone);
@@ -84,13 +80,15 @@ public class StoneServiceImpl implements StoneService {
         stone.setColor(stonePojo.getColor());
         stone.setNotes(stonePojo.getNotes());
         stone.setRack(stonePojo.getRack());
-        stone.setDimensions(new ArrayList<>());
 
-        List.of(stonePojo.getFlatDimensions().split("x|X")).forEach(d -> {
+        stone.getDimensions().removeAll(stone.getDimensions());
+
+        List.of(stonePojo.getFlatDimensions().toLowerCase().split("x")).forEach(d -> {
             Dimension dim = new Dimension();
             dim.setDimension(new BigDecimal(d));
             dim.setStone(stone);
             this.stoneDao.createDimension(dim);
+            stone.getDimensions().add(dim);
         });
 
 

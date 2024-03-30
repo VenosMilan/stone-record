@@ -45,8 +45,8 @@ public class Toolbar {
         thicknesFilter();
         dimensionFilter();
 
-        Button addContactButton = new Button("Add stone");
-        addContactButton.addClickListener(e -> {
+        Button addButton = new Button("Add stone");
+        addButton.addClickListener(e -> {
             form.setStone(new StonePojo());
             dialog.open();
         });
@@ -60,8 +60,7 @@ public class Toolbar {
             columnToggleContextMenu.addColumnToggleItem(col.getHeaderText(), col);
         });
 
-        var horizontalLayout = new HorizontalLayout(filterText, thicknesFilterText,
-                dimensionFilterText, addContactButton);
+        var horizontalLayout = new HorizontalLayout(filterText, thicknesFilterText, dimensionFilterText, addButton);
         horizontalLayout.setPadding(true);
         horizontalLayout.setFlexGrow(13, menuButton);
         horizontalLayout.add(menuButton);

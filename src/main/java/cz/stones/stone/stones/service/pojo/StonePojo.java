@@ -48,4 +48,10 @@ public class StonePojo {
         this.setFlatDimensions(String.join("x",
                 stone.getDimensions().stream().map(v -> v.getDimension().toString()).toList()));
     }
+
+    @Override
+    public String toString() {
+        // TODO Auto-generated method stub
+        return super.toString();
+    }
 }

@@ -1,5 +1,8 @@
 package cz.stones.stone.view;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -20,6 +23,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import cz.stones.stone.stones.model.StateOfStone;
+import cz.stones.stone.stones.service.CsvService;
 import cz.stones.stone.stones.service.StoneService;
 import cz.stones.stone.stones.service.pojo.StonePojo;
 import cz.stones.stone.view.component.Toolbar;
@@ -33,11 +37,13 @@ public class MainView extends VerticalLayout {
     private final Grid<StonePojo> grid = new Grid<>(StonePojo.class, false);
     private final Editor<StonePojo> editor = grid.getEditor();
     private final StoneService stoneService;
+    private final CsvService csvService;
     private StoneForm form;
     private Dialog dialog;
 
-    public MainView(StoneService stoneService) {
+    public MainView(StoneService stoneService, CsvService csvService) {
         this.stoneService = stoneService;
+        this.csvService = csvService;
 
         configureForm();
         configureDialog();
@@ -69,24 +75,23 @@ public class MainView extends VerticalLayout {
     }
 
     private void prepareColumns(BeanValidationBinder<StonePojo> binder) {
-        grid.addColumn(StonePojo::getId).setHeader("Id").setFrozen(true).setWidth("5%")
-                .setFlexGrow(0).setVisible(false);
+        grid.addColumn(StonePojo::getId).setHeader("Id").setFrozen(false).setAutoWidth(true).setVisible(false);
         Grid.Column<StonePojo> manufactureColumn = grid.addColumn(StonePojo::getManufacture)
-                .setHeader("Manufacture").setFrozen(true).setWidth("10%").setFlexGrow(0);
+                .setHeader("Manufacture").setFrozen(false).setAutoWidth(true);;
         Grid.Column<StonePojo> colorColumn = grid.addColumn(StonePojo::getColor).setHeader("Color")
-                .setFrozen(true).setWidth("10%").setFlexGrow(0);
+                .setFrozen(false);
         Grid.Column<StonePojo> thicknesColumn = grid.addColumn(StonePojo::getThicknes)
-                .setHeader("Thicknes").setFrozen(true).setWidth("10%").setFlexGrow(0);
+                .setHeader("Thicknes").setFrozen(false);
         Grid.Column<StonePojo> dimensionsColumn = grid.addColumn(StonePojo::getFlatDimensions)
-                .setHeader("Dimensions").setFrozen(true).setAutoWidth(true).setFlexGrow(0);
+                .setHeader("Dimensions").setFrozen(false).setAutoWidth(true);
         Grid.Column<StonePojo> stateOfStoneColumn = grid.addColumn(StonePojo::getStateOfStone)
-                .setHeader("State of stone").setFrozen(true).setWidth("15%").setFlexGrow(0);
+                .setHeader("State of stone").setFrozen(false).setAutoWidth(true);
         Grid.Column<StonePojo> rackColumn = grid.addColumn(StonePojo::getRack).setHeader("Rack")
-                .setFrozen(true).setWidth("10%").setFlexGrow(0);
+                .setFrozen(false).setAutoWidth(true);
         Grid.Column<StonePojo> notesColumn = grid.addColumn(StonePojo::getNotes).setHeader("Notes")
-                .setFrozen(true).setWidth("10%").setFlexGrow(0);
+                .setFrozen(false).setAutoWidth(true);
         Grid.Column<StonePojo> editColumn = addEditButton();
-        editColumn.setWidth("30%");
+        editColumn.setAutoWidth(true);
 
         prepareEditGridEditFields(binder, manufactureColumn, colorColumn, thicknesColumn,
                 dimensionsColumn, stateOfStoneColumn, rackColumn, notesColumn);
@@ -94,13 +99,30 @@ public class MainView extends VerticalLayout {
     }
 
     private void prepareRowEditAction(Grid.Column<StonePojo> editColumn) {
-        Button saveButton = new Button("Save", e -> editor.save());
+        Button saveButton = new Button("Save", e -> {
+            editor.save();
+            List<StonePojo> list = new ArrayList<>();
+
+            for (int i = 0; i < grid.getDataCommunicator().getItemCount(); i++) {
+                list.add(grid.getDataCommunicator().getItem(i));
+            }
+
+            this.csvService.saveDataToCsv(convertToArrayList(list), "./data.csv");
+        });
+
         saveButton.setTooltipText("Save record");
 
         Button deleteButton = new Button("Delete", e -> {
             stoneService.deleteStone(editor.getItem().getId());
             editor.cancel();
             grid.getDataProvider().refreshAll();
+            List<StonePojo> list = new ArrayList<>();
+
+            for (int i = 0; i < grid.getDataCommunicator().getItemCount(); i++) {
+                list.add(grid.getDataCommunicator().getItem(i));
+            }
+
+            this.csvService.saveDataToCsv(convertToArrayList(list), "./data.csv");
         });
 
         deleteButton.setTooltipText("Delete record");
@@ -171,7 +193,7 @@ public class MainView extends VerticalLayout {
                 grid.getEditor().editItem(stone);
             });
             return editButton;
-        }).setWidth("150px").setHeader("Action").setFlexGrow(0);
+        }).setHeader("Action").setFlexGrow(0);
         return editColumn;
     }
 
@@ -194,10 +216,67 @@ public class MainView extends VerticalLayout {
 
     private void saveStone(StoneForm.SaveEvent event) {
         this.stoneService.createStone(event.getStone());
+        List<StonePojo> list = new ArrayList<>();
+
+        for (int i = 0; i < grid.getDataCommunicator().getItemCount(); i++) {
+            list.add(grid.getDataCommunicator().getItem(i));
+        }
+
+        this.csvService.saveDataToCsv(convertToArrayList(list), "./data.csv");
     }
 
     private void closeDialog() {
         dialog.close();
+    }
+
+
+    public static List<String> convertToArrayList(Collection<StonePojo> pojoList) {
+        List<String> result = new ArrayList<>();
+
+        pojoList.forEach(pojo -> {
+            List<String> resultList = new ArrayList<>();
+
+            if (pojo == null) {
+                System.out.println("null");
+            }
+
+            if (pojo.getId() != null) {
+                resultList.add(pojo.getId().toString());
+            }
+
+            if (pojo.getManufacture() != null && !pojo.getManufacture().isEmpty()) {
+                resultList.add(pojo.getManufacture());
+            }
+
+            if (pojo.getColor() != null && !pojo.getColor().isEmpty()) {
+                resultList.add(pojo.getColor());
+            }
+
+            if (pojo.getNotes() != null) {
+                resultList.add(pojo.getNotes().toString());
+            }
+
+            if (pojo.getRack() != null) {
+                resultList.add(pojo.getRack().toString());
+            }
+
+            if (pojo.getThicknes() != null) {
+                resultList.add(pojo.getThicknes().toString());
+            }
+
+            if (pojo.getThicknes() != null) {
+                resultList.add(pojo.getThicknes().toString());
+            }
+
+            if (pojo.getFlatDimensions() != null && !pojo.getFlatDimensions().isEmpty()) {
+                resultList.add(pojo.getFlatDimensions());
+            }
+
+            result.add(String.join(";", resultList));
+        });
+
+
+        return result;
     }
 }
 

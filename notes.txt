@@ -9,4 +9,6 @@ Sqllite geometry
 Protyp
 -Pouze 2D
 -CSV
--Spuštění
+-Spuštění??
+--jar, kam s db?
+--kam s exportem csv?

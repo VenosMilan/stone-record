@@ -53,7 +53,7 @@ public class Stone implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime dateOfCreation;
 
-    @OneToMany(mappedBy = "stone", cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
+    @OneToMany(orphanRemoval = true,mappedBy = "stone", cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
             fetch = FetchType.LAZY)
     @NotNull
     private List<Dimension> dimensions;

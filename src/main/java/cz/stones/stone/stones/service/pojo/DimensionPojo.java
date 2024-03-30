@@ -18,4 +18,7 @@ public class DimensionPojo {
         this.setDimension(dimension.getDimension());
     }
 
+    public DimensionPojo(BigDecimal dimension) {
+        this.setDimension(dimension);
+    }
 }

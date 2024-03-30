@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
- import cz.stones.stone.stones.dao.StoneDao;
+import cz.stones.stone.stones.dao.StoneDao;
 import cz.stones.stone.stones.model.Dimension;
 import cz.stones.stone.stones.model.Stone;
 import cz.stones.stone.stones.service.exception.StoneException;
@@ -19,7 +19,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -62,7 +61,7 @@ public class StoneDaoImpl implements StoneDao {
         try {
             final String HQL = "DELETE FROM Stone WHERE id = :id";
 
-           
+
             entityManager.createQuery(HQL).setParameter("id", id).executeUpdate();
         } catch (Exception e) {
             throw new StoneException("Delete stone failed.", e);
@@ -102,9 +101,10 @@ public class StoneDaoImpl implements StoneDao {
             List<String> dList = Arrays.asList(filter.getTextFilter().split("x"));
 
             dList.forEach(dim -> {
-                dimensionsPredicates.add(cb.greaterThanOrEqualTo(dimensionJoin.get("dimension"), new BigDecimal(dim)));
+                dimensionsPredicates.add(cb.greaterThanOrEqualTo(dimensionJoin.get("dimension"),
+                        new BigDecimal(dim)));
             });
-            
+
             dimensionsPredicates.add(cb.equal(root.get("countOfDimensions"), dList.size()));
             predicates.add(cb.and(dimensionsPredicates.toArray(new Predicate[0])));
         }
@@ -118,9 +118,12 @@ public class StoneDaoImpl implements StoneDao {
         }
 
 
-        cq.orderBy(cb.asc(root.get("manufacture")), cb.asc(root.get("stateOfStone")));
+        cq.orderBy(cb.asc(root.get("id")));
+
 
         TypedQuery<Stone> query = entityManager.createQuery(cq);
+        query.setFirstResult(Long.valueOf(pageable.getOffset()).intValue());
+        query.setMaxResults(pageable.getPageSize());
         List<Stone> stones = query.getResultList();
 
         return new PageImpl<>(stones);
@@ -134,13 +137,13 @@ public class StoneDaoImpl implements StoneDao {
     @Override
     public Long createDimension(Dimension dimension) {
         entityManager.persist(dimension);
-        
+
         return dimension.getId();
     }
 
     @Override
     public void deleteDimension(Dimension dimension) {
-        entityManager.remove(getDimension(dimension));
+        entityManager.remove(dimension);
     }
 
     @Override
