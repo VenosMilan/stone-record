@@ -39,6 +39,8 @@ public class StoneServiceImpl implements StoneService {
         stone.setDimensions(new ArrayList<>());
 
         List.of(stonePojo.getFlatDimensions().toLowerCase().split("x")).forEach(d -> {
+            d = d.trim();
+            
             Dimension dim = new Dimension();
             dim.setDimension(new BigDecimal(d));
             dim.setStone(stone);
@@ -84,6 +86,8 @@ public class StoneServiceImpl implements StoneService {
         stone.getDimensions().removeAll(stone.getDimensions());
 
         List.of(stonePojo.getFlatDimensions().toLowerCase().split("x")).forEach(d -> {
+            d = d.trim();
+
             Dimension dim = new Dimension();
             dim.setDimension(new BigDecimal(d));
             dim.setStone(stone);

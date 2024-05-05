@@ -1,5 +1,6 @@
 package cz.stones.stone.view;
 
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +34,7 @@ import cz.stones.stone.view.convertor.DoubleToBigDecimalConverter;
 @Route(layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 public class MainView extends VerticalLayout {
+
 
     private final Grid<StonePojo> grid = new Grid<>(StonePojo.class, false);
     private final Editor<StonePojo> editor = grid.getEditor();
@@ -75,13 +77,14 @@ public class MainView extends VerticalLayout {
     }
 
     private void prepareColumns(BeanValidationBinder<StonePojo> binder) {
-        grid.addColumn(StonePojo::getId).setHeader("Id").setFrozen(false).setAutoWidth(true).setVisible(false);
+        grid.addColumn(StonePojo::getId).setHeader("Id").setFrozen(false).setAutoWidth(true)
+                .setVisible(false);
         Grid.Column<StonePojo> manufactureColumn = grid.addColumn(StonePojo::getManufacture)
                 .setHeader("Manufacture").setFrozen(false).setAutoWidth(true);;
-        Grid.Column<StonePojo> colorColumn = grid.addColumn(StonePojo::getColor).setHeader("Color")
-                .setFrozen(false);
-        Grid.Column<StonePojo> thicknesColumn = grid.addColumn(StonePojo::getThicknes)
-                .setHeader("Thicknes").setFrozen(false);
+        Grid.Column<StonePojo> colorColumn =
+                grid.addColumn(StonePojo::getColor).setHeader("Color").setFrozen(false);
+        Grid.Column<StonePojo> thicknesColumn =
+                grid.addColumn(StonePojo::getThicknes).setHeader("Thicknes").setFrozen(false);
         Grid.Column<StonePojo> dimensionsColumn = grid.addColumn(StonePojo::getFlatDimensions)
                 .setHeader("Dimensions").setFrozen(false).setAutoWidth(true);
         Grid.Column<StonePojo> stateOfStoneColumn = grid.addColumn(StonePojo::getStateOfStone)
@@ -107,7 +110,7 @@ public class MainView extends VerticalLayout {
                 list.add(grid.getDataCommunicator().getItem(i));
             }
 
-            this.csvService.saveDataToCsv(convertToArrayList(list), "./data.csv");
+            this.csvService.saveDataToCsv(convertToArrayList(list), csvService.getPath());
         });
 
         saveButton.setTooltipText("Save record");
@@ -122,7 +125,7 @@ public class MainView extends VerticalLayout {
                 list.add(grid.getDataCommunicator().getItem(i));
             }
 
-            this.csvService.saveDataToCsv(convertToArrayList(list), "./data.csv");
+            this.csvService.saveDataToCsv(convertToArrayList(list), csvService.getPath());
         });
 
         deleteButton.setTooltipText("Delete record");
@@ -222,7 +225,7 @@ public class MainView extends VerticalLayout {
             list.add(grid.getDataCommunicator().getItem(i));
         }
 
-        this.csvService.saveDataToCsv(convertToArrayList(list), "./data.csv");
+        this.csvService.saveDataToCsv(convertToArrayList(list), csvService.getPath());
     }
 
     private void closeDialog() {
@@ -236,43 +239,70 @@ public class MainView extends VerticalLayout {
         pojoList.forEach(pojo -> {
             List<String> resultList = new ArrayList<>();
 
-            if (pojo == null) {
-                System.out.println("null");
-            }
+            if (pojo != null) {
+                if (pojo.getId() != null) {
+                    resultList.add(pojo.getId().toString());
+                } else {
+                    resultList.add("");
+                }
 
-            if (pojo.getId() != null) {
-                resultList.add(pojo.getId().toString());
-            }
+                if (pojo.getManufacture() != null && !pojo.getManufacture().isEmpty()) {
+                    resultList.add(pojo.getManufacture());
+                } else {
+                    resultList.add("");
+                }
 
-            if (pojo.getManufacture() != null && !pojo.getManufacture().isEmpty()) {
-                resultList.add(pojo.getManufacture());
-            }
 
-            if (pojo.getColor() != null && !pojo.getColor().isEmpty()) {
-                resultList.add(pojo.getColor());
-            }
+                if (pojo.getColor() != null && !pojo.getColor().isEmpty()) {
+                    resultList.add(pojo.getColor());
+                } else {
+                    resultList.add("");
+                }
 
-            if (pojo.getNotes() != null) {
-                resultList.add(pojo.getNotes().toString());
-            }
 
-            if (pojo.getRack() != null) {
-                resultList.add(pojo.getRack().toString());
-            }
+                if (pojo.getNotes() != null) {
+                    resultList.add(pojo.getNotes().toString());
+                } else {
+                    resultList.add("");
+                }
 
-            if (pojo.getThicknes() != null) {
-                resultList.add(pojo.getThicknes().toString());
-            }
 
-            if (pojo.getThicknes() != null) {
-                resultList.add(pojo.getThicknes().toString());
-            }
+                if (pojo.getRack() != null) {
+                    resultList.add(pojo.getRack().toString());
+                } else {
+                    resultList.add("");
+                }
 
-            if (pojo.getFlatDimensions() != null && !pojo.getFlatDimensions().isEmpty()) {
-                resultList.add(pojo.getFlatDimensions());
-            }
 
-            result.add(String.join(";", resultList));
+                if (pojo.getStateOfStone() != null) {
+                    resultList.add(pojo.getStateOfStone().toString());
+                } else {
+                    resultList.add("");
+                }
+
+                if (pojo.getDateOfCreation() != null) {
+                    resultList.add(Long.valueOf(pojo.getDateOfCreation().toEpochSecond(ZoneOffset.UTC)).toString());
+                } else {
+                    resultList.add("");
+                }
+
+
+                if (pojo.getThicknes() != null) {
+                    resultList.add(pojo.getThicknes().toString());
+                } else {
+                    resultList.add("");
+                }
+
+
+                if (pojo.getFlatDimensions() != null && !pojo.getFlatDimensions().isEmpty()) {
+                    resultList.add(pojo.getFlatDimensions());
+                } else {
+                    resultList.add("");
+                }
+
+
+                result.add(String.join(";", resultList));
+            }
         });
 
 

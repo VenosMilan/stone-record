@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.math.Fraction;
 import cz.stones.stone.stones.model.StateOfStone;
 import cz.stones.stone.stones.model.Stone;
 import lombok.Getter;
@@ -45,13 +46,29 @@ public class StonePojo {
         this.setRack(stone.getRack());
         this.setDateOfCreation(stone.getDateOfCreation());
         this.setDimensions(stone.getDimensions().stream().map(DimensionPojo::new).toList());
+        //this.setFlatDimensions(prepareFlatDimension());
         this.setFlatDimensions(String.join("x",
                 stone.getDimensions().stream().map(v -> v.getDimension().toString()).toList()));
+
     }
 
-    @Override
-    public String toString() {
-        // TODO Auto-generated method stub
-        return super.toString();
+    public String prepareFlatDimension() {
+        List<String> flat = new ArrayList<>();
+
+        getDimensions().forEach(d -> {
+            BigDecimal fractionalPart = d.getDimension().remainder(BigDecimal.ONE);
+
+            if (fractionalPart.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal wholePart = d.getDimension().subtract(fractionalPart);
+
+                Fraction fr = Fraction.getFraction(fractionalPart.doubleValue());
+
+                flat.add(wholePart.toString() + " " + fr.toString());
+            } else {
+                flat.add(d.getDimension().toString());
+            }
+        });
+
+        return String.join(" x ", flat);
     }
 }
